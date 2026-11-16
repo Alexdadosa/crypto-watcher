@@ -1,0 +1,25 @@
+name: Crypto watcher
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      alert_percent:
+        description: "Alert threshold in % (use 0.001 to force a test alert)"
+        default: "1"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx --yes tsx once.ts
+        env:
+          VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
+          SUBSCRIPTION_JSON: ${{ secrets.SUBSCRIPTION_JSON }}
+          ALERT_PERCENT: ${{ github.event.inputs.alert_percent || '1' }}
